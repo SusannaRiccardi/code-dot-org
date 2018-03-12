@@ -10,6 +10,7 @@ require 'cdo/firehose'
 #
 class BucketHelper
   cattr_accessor :s3
+  attr_accessor :bucket
 
   def initialize(bucket, base_dir)
     @bucket = bucket

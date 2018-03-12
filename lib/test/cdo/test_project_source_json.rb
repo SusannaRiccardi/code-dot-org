@@ -111,6 +111,69 @@ class ProjectSourceJsonTest < Minitest::Test
     assert_equal initial_animation_2_version, new_animation_2_version
   end
 
+  def test_raise_on_to_json_if_unparseable
+    psj = ProjectSourceJson.new("ceci n'est pas du json")
+    assert_raises do
+      psj.to_json
+    end
+  end
+
+  def test_raise_on_animation_manifest_if_missing_animations
+    json_wo_animations = %{
+      {
+         "source":"//comment"
+      }
+    }
+
+    json_w_malformed_animations = %{
+      {
+         "source":"//comment",
+         "animations": "something else"
+      }
+    }
+
+    json_animations_w_keys = %{
+      {
+         "source":"//comment",
+         "animations":{
+            "orderedKeys":[
+               "#{ANIMATION_1_KEY}"
+            ],
+            "propsByKey":{
+               "#{ANIMATION_1_KEY}":{
+                  "name":"pine_trees",
+                  "sourceUrl":null,
+                  "frameSize":{
+                     "x":400,
+                     "y":400
+                  },
+                  "frameCount":1,
+                  "looping":true,
+                  "frameDelay":12,
+                  "version":"_9WUARCAgtYNZf8EZR3HyNVetFkRM5H5"
+               }
+            }
+         }
+      }
+    }
+
+    json_animations_wo_keys = %{
+      {
+         "source":"//comment",
+         "animations":{
+         }
+      }
+    }
+    psj = ProjectSourceJson.new(json_wo_animations)
+    refute psj.animation_manifest?
+
+    psj = ProjectSourceJson.new(json_animations_wo_keys)
+    refute psj.animation_manifest?
+
+    psj = ProjectSourceJson.new(json_animations_w_keys)
+    assert psj.animation_manifest?
+  end
+
   private
 
   def assert_equal_json(expected_json, actual_json)
